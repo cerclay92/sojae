@@ -10,16 +10,17 @@ import { Separator } from '@/components/ui/separator';
 import { PostActions } from '@/features/magazine/components/post-actions';
 
 interface PostPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({
   params,
 }: PostPageProps): Promise<Metadata> {
   try {
-    const post = await getPostBySlug(params.slug).catch(() => null);
+    const resolvedParams = await params;
+    const post = await getPostBySlug(resolvedParams.slug).catch(() => null);
     
     if (!post) {
       return {
@@ -57,7 +58,8 @@ export async function generateMetadata({
 
 export default async function PostPage({ params }: PostPageProps) {
   try {
-    const post = await getPostBySlug(params.slug).catch(() => null);
+    const resolvedParams = await params;
+    const post = await getPostBySlug(resolvedParams.slug).catch(() => null);
     
     if (!post) {
       notFound();

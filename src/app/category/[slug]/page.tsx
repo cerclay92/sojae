@@ -9,15 +9,16 @@ import { CategoryHeader } from '@/features/magazine/components/category-header';
 import { getPopularPosts } from '@/features/magazine/api';
 
 interface CategoryPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({
   params,
 }: CategoryPageProps): Promise<Metadata> {
-  const categoryId = decodeURIComponent(params.slug);
+  const resolvedParams = await params;
+  const categoryId = decodeURIComponent(resolvedParams.slug);
   const category = CATEGORY_MAP[categoryId as keyof typeof CATEGORY_MAP];
   
   if (!category) {
@@ -33,7 +34,8 @@ export async function generateMetadata({
 }
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
-  const categoryId = decodeURIComponent(params.slug);
+  const resolvedParams = await params;
+  const categoryId = decodeURIComponent(resolvedParams.slug);
   const category = CATEGORY_MAP[categoryId as keyof typeof CATEGORY_MAP];
   
   if (!category) {
