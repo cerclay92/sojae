@@ -12,6 +12,10 @@ const config = {
         '2xl': '1400px',
       },
     },
+    fontFamily: {
+      sans: ['var(--font-paperlogy)', 'sans-serif'],
+      mono: ['var(--font-geist-mono)', 'monospace'],
+    },
     extend: {
       colors: {
         border: 'hsl(var(--border))',
