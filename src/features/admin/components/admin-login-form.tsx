@@ -1,112 +1,98 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { getSupabaseClient } from '@/lib/supabase-client';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@supabase/supabase-js";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2 } from "lucide-react";
 
-const formSchema = z.object({
-  email: z.string().email('유효한 이메일 주소를 입력해주세요.'),
-  password: z.string().min(6, '비밀번호는 최소 6자 이상이어야 합니다.'),
-});
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export function AdminLoginForm() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState("");
   const router = useRouter();
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
-  });
-
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
     setIsLoading(true);
-    setError(null);
-    
-    try {
-      const supabase = getSupabaseClient();
-      
-      const { error } = await supabase.auth.signInWithPassword({
-        email: values.email,
-        password: values.password,
-      });
-      
-      if (error) {
-        throw error;
-      }
-      
-      router.push('/admin/dashboard');
-    } catch (error) {
-      console.error('로그인 오류:', error);
-      setError('이메일 또는 비밀번호가 올바르지 않습니다.');
-    } finally {
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      setError("로그인 실패! 이메일/비밀번호를 확인하세요.");
       setIsLoading(false);
+      return;
     }
+
+    // 관리자 권한 체크 (admin_users 테이블)
+    const { data: admin, error: adminError } = await supabase
+      .from("admin_users")
+      .select("*")
+      .eq("email", email)
+      .single();
+
+    if (adminError || !admin) {
+      setError("관리자 권한이 없습니다.");
+      setIsLoading(false);
+      // 로그아웃 처리
+      await supabase.auth.signOut();
+      return;
+    }
+
+    // 로그인 성공
+    router.push("/admin");
+    router.refresh();
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>이메일</FormLabel>
-              <FormControl>
-                <Input placeholder="admin@sojae.com" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+    <form onSubmit={handleLogin} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="email">이메일</Label>
+        <Input
+          id="email"
+          type="email"
+          placeholder="pjs@admin.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
         />
-        
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>비밀번호</FormLabel>
-              <FormControl>
-                <Input type="password" placeholder="••••••" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="password">비밀번호</Label>
+        <Input
+          id="password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
         />
-        
-        {error && (
-          <div className="text-sm text-destructive">{error}</div>
-        )}
-        
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              로그인 중...
-            </>
-          ) : (
-            '로그인'
-          )}
-        </Button>
-      </form>
-    </Form>
+      </div>
+      {error && <div className="text-sm font-medium text-red-500">{error}</div>}
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        로그인
+      </Button>
+      <div className="text-center text-sm text-muted-foreground">
+        <p>관리자 계정</p>
+        <p>
+          이메일: <strong>pjs@admin.com</strong>
+        </p>
+        <p>
+          비밀번호: <strong>password</strong>
+        </p>
+      </div>
+    </form>
   );
 } 

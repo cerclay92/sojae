@@ -95,12 +95,7 @@ export async function getPostById(id: string) {
 
     return data as Post;
   } catch (error) {
-    console.error('게시물 가져오기 실패:', error);
-    // 샘플 데이터에서 id로 게시물 찾기
-    const post = samplePosts.find(p => p.id === id);
-    if (post) {
-      return post as Post;
-    }
+    console.error('게시물 조회 실패:', error);
     throw error;
   }
 }
@@ -208,67 +203,48 @@ export async function updatePostLikes(id: string) {
 }
 
 // Admin functions
-export async function createPost(post: Omit<Post, 'id' | 'created_at' | 'updated_at' | 'likes'>) {
+export async function createPost(postData: Omit<Post, 'id' | 'created_at' | 'updated_at' | 'likes'>) {
   try {
     const supabase = getSupabaseServer();
     
-    const { data, error } = await supabase.from('posts').insert([post]).select();
+    const { data, error } = await supabase
+      .from('posts')
+      .insert([postData])
+      .select()
+      .single();
 
     if (error) {
       throw new Error(`Failed to create post: ${error.message}`);
     }
 
-    return data[0] as Post;
+    return data as Post;
   } catch (error) {
     console.error('게시물 생성 실패:', error);
-    // 개발 환경에서 샘플 데이터 처리
-    if (process.env.NODE_ENV === 'development') {
-      const newPost: Post = {
-        id: crypto.randomUUID(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        likes: 0,
-        ...post
-      };
-      samplePosts.unshift(newPost);
-      return newPost;
-    }
     throw error;
   }
 }
 
 export async function updatePost(
-  id: string,
-  post: Partial<Omit<Post, 'id' | 'created_at' | 'updated_at'>>
+  id: string, 
+  postData: Partial<Omit<Post, 'id' | 'created_at' | 'updated_at'>>,
 ) {
   try {
     const supabase = getSupabaseServer();
     
     const { data, error } = await supabase
       .from('posts')
-      .update(post)
+      .update(postData)
       .eq('id', id)
-      .select();
+      .select()
+      .single();
 
     if (error) {
       throw new Error(`Failed to update post: ${error.message}`);
     }
 
-    return data[0] as Post;
+    return data as Post;
   } catch (error) {
     console.error('게시물 업데이트 실패:', error);
-    // 개발 환경에서 샘플 데이터 처리
-    if (process.env.NODE_ENV === 'development') {
-      const postIndex = samplePosts.findIndex(p => p.id === id);
-      if (postIndex >= 0) {
-        samplePosts[postIndex] = {
-          ...samplePosts[postIndex],
-          ...post,
-          updated_at: new Date().toISOString()
-        };
-        return samplePosts[postIndex];
-      }
-    }
     throw error;
   }
 }
@@ -277,7 +253,10 @@ export async function deletePost(id: string) {
   try {
     const supabase = getSupabaseServer();
     
-    const { error } = await supabase.from('posts').delete().eq('id', id);
+    const { error } = await supabase
+      .from('posts')
+      .delete()
+      .eq('id', id);
 
     if (error) {
       throw new Error(`Failed to delete post: ${error.message}`);
@@ -286,14 +265,6 @@ export async function deletePost(id: string) {
     return true;
   } catch (error) {
     console.error('게시물 삭제 실패:', error);
-    // 개발 환경에서 샘플 데이터 처리
-    if (process.env.NODE_ENV === 'development') {
-      const postIndex = samplePosts.findIndex(p => p.id === id);
-      if (postIndex >= 0) {
-        samplePosts.splice(postIndex, 1);
-        return true;
-      }
-    }
     throw error;
   }
 } 

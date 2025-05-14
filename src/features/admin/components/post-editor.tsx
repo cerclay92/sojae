@@ -23,13 +23,25 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, Save } from 'lucide-react';
+import { Loader2, Save, Trash2 } from 'lucide-react';
 import { CATEGORIES } from '@/constants/category';
 import { useRouter } from 'next/navigation';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { generateSlug } from '@/lib/utils';
-import { createPost } from '@/features/magazine/api';
+import { createPost, updatePost, deletePost } from '@/features/magazine/api';
 import { Post } from '@/features/magazine/api';
+import { useToast } from '@/components/ui/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const formSchema = z.object({
   title: z.string().min(1, '제목을 입력해주세요.'),
@@ -47,8 +59,10 @@ interface PostEditorProps {
 
 export function PostEditor({ post }: PostEditorProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { toast } = useToast();
   
   // 클라이언트 사이드 렌더링 확인
   useEffect(() => {
@@ -89,11 +103,26 @@ export function PostEditor({ post }: PostEditorProps) {
     
     try {
       // 슬러그 생성
-      const slug = generateSlug(values.title);
+      const slug = post?.slug || generateSlug(values.title);
       
       // 게시물 생성 또는 업데이트
       if (post) {
-        // 게시물 업데이트 로직은 여기에 추가
+        // 게시물 업데이트 로직
+        await updatePost(post.id, {
+          title: values.title,
+          content: values.content,
+          excerpt: values.excerpt,
+          category: values.category,
+          slug,
+          thumbnail_url: values.thumbnail_url || null,
+          is_premium: values.is_premium,
+          published: values.published,
+        });
+        
+        toast({
+          title: "게시물이 업데이트되었습니다.",
+          description: "성공적으로 변경사항이 저장되었습니다.",
+        });
       } else {
         await createPost({
           title: values.title,
@@ -105,6 +134,11 @@ export function PostEditor({ post }: PostEditorProps) {
           is_premium: values.is_premium,
           published: values.published,
         });
+        
+        toast({
+          title: "게시물이 생성되었습니다.",
+          description: "새로운 게시물이 성공적으로 생성되었습니다.",
+        });
       }
       
       // 성공 후 대시보드로 이동
@@ -114,6 +148,26 @@ export function PostEditor({ post }: PostEditorProps) {
       setError('게시물을 저장하는 중 오류가 발생했습니다.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+  
+  const handleDelete = async () => {
+    if (!post) return;
+    
+    setIsDeleting(true);
+    
+    try {
+      await deletePost(post.id);
+      toast({
+        title: "게시물이 삭제되었습니다.",
+        description: "게시물이 성공적으로 삭제되었습니다.",
+      });
+      router.push('/admin/dashboard');
+    } catch (error) {
+      console.error('게시물 삭제 오류:', error);
+      setError('게시물을 삭제하는 중 오류가 발생했습니다.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -154,7 +208,7 @@ export function PostEditor({ post }: PostEditorProps) {
               )}
             />
             
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="category"
@@ -190,7 +244,7 @@ export function PostEditor({ post }: PostEditorProps) {
                   <FormItem>
                     <FormLabel>썸네일 URL</FormLabel>
                     <FormControl>
-                      <Input placeholder="https://..." {...field} />
+                      <Input placeholder="https://..." {...field} value={field.value || ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -198,7 +252,7 @@ export function PostEditor({ post }: PostEditorProps) {
               />
             </div>
             
-            <div className="flex space-x-6">
+            <div className="flex flex-col sm:flex-row gap-6">
               <FormField
                 control={form.control}
                 name="is_premium"
@@ -247,7 +301,7 @@ export function PostEditor({ post }: PostEditorProps) {
                   <Textarea 
                     placeholder="게시물 내용을 입력하세요..." 
                     {...field} 
-                    className="h-[300px] resize-none"
+                    className="h-[300px] min-h-[300px] resize-none"
                   />
                 </FormControl>
                 <FormMessage />
@@ -260,28 +314,64 @@ export function PostEditor({ post }: PostEditorProps) {
           <div className="text-sm text-destructive">{error}</div>
         )}
         
-        <div className="flex justify-end gap-4">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={() => router.push('/admin/dashboard')}
-            disabled={isSubmitting}
-          >
-            취소
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                저장 중...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                저장하기
-              </>
-            )}
-          </Button>
+        <div className="flex flex-wrap justify-between items-center gap-4">
+          {post ? (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button type="button" variant="destructive" disabled={isDeleting || isSubmitting}>
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      삭제 중...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      삭제하기
+                    </>
+                  )}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>게시물 삭제</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    정말로 이 게시물을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>취소</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete}>삭제</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          ) : (
+            <div /> {/* 빈 div로 플렉스 레이아웃 유지 */}
+          )}
+          
+          <div className="flex gap-4 ml-auto">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => router.push('/admin/dashboard')}
+              disabled={isSubmitting || isDeleting}
+            >
+              취소
+            </Button>
+            <Button type="submit" disabled={isSubmitting || isDeleting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  저장 중...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  저장하기
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </form>
     </Form>
