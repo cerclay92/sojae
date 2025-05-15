@@ -8,13 +8,14 @@ import { SUBSCRIPTION_TYPES } from '@/constants/subscription';
 import { formatPrice } from '@/lib/utils';
 import { createSubscription } from '@/features/subscribe/api';
 import { useRouter } from 'next/navigation';
+import { SubscriptionType } from '@/constants/subscription';
 
 interface SubscriptionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   data: {
     email: string;
-    subscription_type: 'monthly' | 'yearly' | 'donate';
+    subscription_type: SubscriptionType;
   };
 }
 
