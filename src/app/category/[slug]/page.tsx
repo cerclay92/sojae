@@ -47,8 +47,8 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   let popularPosts = [];
   
   try {
-    posts = await getPostsByCategory(categoryId);
-    postCount = await getPostCount(categoryId) || 0;
+    posts = await getPostsByCategory(categoryId as any);
+    postCount = await getPostCount(categoryId as any) || 0;
     popularPosts = await getPopularPosts(5);
   } catch (error) {
     console.error(`카테고리(${categoryId}) 데이터 로드 중 오류 발생:`, error);
