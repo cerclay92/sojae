@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { checkAdminAccess } from "@/lib/admin-auth";
+import { protectAdminRoute } from "@/lib/admin-auth";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, MoreHorizontal, ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
@@ -45,8 +45,8 @@ async function getArticles() {
   return data || [];
 }
 
-export default async function ArticlesPage() {
-  await checkAdminAccess();
+export default async function AdminArticlesPage() {
+  await protectAdminRoute();
   const articles = await getArticles();
 
   return (

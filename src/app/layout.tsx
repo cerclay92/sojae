@@ -43,8 +43,8 @@ export const metadata: Metadata = {
     creator: '@sojae',
   },
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
+    icon: 'https://fntiuopyonutxkeeipsc.supabase.co/storage/v1/object/public/video//favicon.ico',
+    shortcut: 'https://fntiuopyonutxkeeipsc.supabase.co/storage/v1/object/public/video//favicon.ico',
     apple: '/icons/apple-touch-icon.png',
   },
   manifest: '/site.webmanifest',

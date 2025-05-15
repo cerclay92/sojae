@@ -73,6 +73,15 @@ export function AdminDashboard() {
   
   const handleSignOut = async () => {
     try {
+      // 모든 세션 스토리지와 로컬 스토리지 클리어
+      sessionStorage.clear();
+      localStorage.clear();
+      
+      // 클라이언트 사이드에서 쿠키 삭제 (document.cookie 접근)
+      document.cookie.split(";").forEach(function(c) {
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
+      
       // API 경로를 통해 로그아웃 (Next-Auth와 Supabase 모두 처리)
       window.location.href = '/api/auth/signout';
     } catch (error) {

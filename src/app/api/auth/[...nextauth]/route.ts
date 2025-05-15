@@ -16,6 +16,7 @@ declare module "next-auth" {
       image?: string;
       role?: string;
     }
+    token?: any;
   }
 }
 
@@ -23,6 +24,8 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     role?: string;
+    supabaseToken?: string;
+    supabaseRefreshToken?: string;
   }
 }
 
@@ -76,6 +79,8 @@ const handler = NextAuth({
             email: authData.user.email,
             name: authData.user.user_metadata?.name || authData.user.email,
             role: "admin",
+            supabaseToken: authData.session?.access_token,
+            supabaseRefreshToken: authData.session?.refresh_token,
           };
         } catch (error) {
           console.error("인증 과정에서 오류 발생:", error);
@@ -92,12 +97,15 @@ const handler = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role;
+        token.supabaseToken = user.supabaseToken;
+        token.supabaseRefreshToken = user.supabaseRefreshToken;
       }
       return token;
     },
     async session({ session, token }) {
-      if (session.user && token.role) {
+      if (session.user) {
         session.user.role = token.role as string;
+        session.token = token;
       }
       return session;
     },
@@ -106,6 +114,8 @@ const handler = NextAuth({
     signIn: "/admin/login",
     error: "/admin/login",
   },
+  secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === 'development',
 });
 
 export { handler as GET, handler as POST };

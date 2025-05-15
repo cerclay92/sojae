@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { checkAdminAccess } from "@/lib/admin-auth";
+import { checkAdminAccess, protectAdminRoute } from "@/lib/admin-auth";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, MoreHorizontal, Loader2 } from "lucide-react";
 import {
@@ -54,7 +54,9 @@ async function getUserDetails(emails: string[]) {
 }
 
 export default async function SubscribersPage() {
-  await checkAdminAccess();
+  // 인증 체크 및 보호
+  await protectAdminRoute();
+  
   const subscribers = await getAllSubscribers();
   
   // 구독자 이메일 목록

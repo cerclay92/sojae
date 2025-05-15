@@ -1,91 +1,140 @@
-import { Metadata } from "next";
-import { checkAdminAccess } from "@/lib/admin-auth";
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, FileText, MessageSquare, Users, Tag, BarChart2, LogOut } from "lucide-react";
-import { createClient } from "@supabase/supabase-js";
+import { BookOpen, FileText, MessageSquare, Users, Tag, BarChart2, LogOut, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import useSWR from "swr";
 
-export const metadata: Metadata = {
-  title: "관리자 대시보드 | 서재",
-  description: "블로그 관리 대시보드",
-};
+interface DashboardCardProps {
+  title: string;
+  value: string;
+  icon: React.ReactNode;
+}
 
-// 최근 게시글 가져오기
-async function getRecentArticles(limit = 5) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+interface RecentArticlesCardProps {
+  title: string;
+  icon: React.ReactNode;
+  path: string;
+  articles: any[];
+}
 
-  const { data, error } = await supabase
-    .from("articles")
-    .select("id, title, created_at")
-    .order("created_at", { ascending: false })
-    .limit(limit);
+interface RecentCommentsCardProps {
+  title: string;
+  icon: React.ReactNode;
+  path: string;
+  comments: any[];
+}
 
-  if (error) {
-    console.error("최근 게시글 조회 실패:", error);
-    return [];
+interface ActionCardProps {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  path: string;
+}
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+export default function AdminPage() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  // 인증 체크 API 호출
+  const { data: authResult, error: authFetchError } = useSWR("/api/admin/auth-check", fetcher);
+
+  // API 엔드포인트를 통해 데이터 가져오기
+  const { data: stats, error: statsError } = useSWR('/api/admin/dashboard/stats', fetcher);
+  const { data: recentArticles, error: articlesError } = useSWR('/api/admin/dashboard/recent-articles', fetcher);
+  const { data: recentComments, error: commentsError } = useSWR('/api/admin/dashboard/recent-comments', fetcher);
+
+  // 클라이언트 측 세션 확인을 추가하여 인증 상태를 더 강력하게 체크
+  useEffect(() => {
+    // 1. 먼저 세션 스토리지 확인
+    let isAuthenticated = false;
+    try {
+      const adminUser = sessionStorage.getItem('admin-user');
+      if (adminUser) {
+        const userData = JSON.parse(adminUser);
+        isAuthenticated = userData.isAuthenticated === true;
+      }
+    } catch (e) {
+      console.error("세션 스토리지 확인 오류:", e);
+    }
+
+    // 2. API 결과와 함께 확인
+    if (authFetchError) {
+      setAuthError("인증 오류가 발생했습니다.");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!authResult) {
+      // API 응답을 기다리되, 세션 스토리지에 인증 정보가 있으면 로딩 상태 유지
+      if (!isAuthenticated) {
+        setIsLoading(false);
+      }
+      return;
+    }
+    
+    // 3. API 응답 또는 세션 스토리지 기반으로 인증 상태 결정
+    if (!authResult.isAdmin && authResult.shouldRedirect && !isAuthenticated) {
+      // 두 검증 모두 실패했을 때만 리다이렉트
+      const timestamp = new Date().getTime();
+      router.push(`/admin/login?t=${timestamp}`);
+      return;
+    }
+    
+    // 어느 하나라도 성공이면 인증됨으로 간주
+    setIsLoading(false);
+  }, [authResult, authFetchError, router]);
+
+  // 데이터 로딩 상태 또는 오류 상태 처리
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Loader2 className="h-10 w-10 animate-spin mx-auto mb-4" />
+          <p>인증 확인 중...</p>
+        </div>
+      </div>
+    );
   }
 
-  return data;
-}
-
-// 최근 댓글 가져오기
-async function getRecentComments(limit = 5) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-
-  const { data, error } = await supabase
-    .from("comments")
-    .select("id, content, created_at, article_id, articles(title)")
-    .order("created_at", { ascending: false })
-    .limit(limit);
-
-  if (error) {
-    console.error("최근 댓글 조회 실패:", error);
-    return [];
+  if (authError) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-xl font-bold mb-4">인증 오류</h2>
+          <p className="mb-4">{authError}</p>
+          <Button asChild>
+            <Link href="/admin/login">로그인 페이지로 이동</Link>
+          </Button>
+        </div>
+      </div>
+    );
   }
 
-  return data;
-}
+  if (statsError || articlesError || commentsError) {
+    return (
+      <div className="p-6">
+        <h1 className="text-xl font-bold mb-4">데이터 로딩 중 오류가 발생했습니다</h1>
+        <Button onClick={() => window.location.reload()}>새로고침</Button>
+      </div>
+    );
+  }
 
-async function getStats() {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-
-  const articlesPromise = supabase.from("articles").select("id", { count: "exact" });
-  const commentsPromise = supabase.from("comments").select("id", { count: "exact" });
-  const usersPromise = supabase.from("users").select("id", { count: "exact" });
-  const categoriesPromise = supabase.from("categories").select("id", { count: "exact" });
-
-  const [articles, comments, users, categories] = await Promise.all([
-    articlesPromise,
-    commentsPromise,
-    usersPromise,
-    categoriesPromise,
-  ]);
-
-  return {
-    articles: articles.count || 0,
-    comments: comments.count || 0,
-    users: users.count || 0,
-    categories: categories.count || 0,
-  };
-}
-
-export default async function AdminPage() {
-  await checkAdminAccess();
-  const stats = await getStats();
-  const recentArticles = await getRecentArticles();
-  const recentComments = await getRecentComments();
+  if (!stats || !recentArticles || !recentComments) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-10 w-10 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 p-6 lg:p-10 max-w-7xl mx-auto">
@@ -196,7 +245,7 @@ export default async function AdminPage() {
   );
 }
 
-function DashboardCard({ title, value, icon }: { title: string; value: string; icon: React.ReactNode }) {
+function DashboardCard({ title, value, icon }: DashboardCardProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -208,13 +257,6 @@ function DashboardCard({ title, value, icon }: { title: string; value: string; i
       </CardContent>
     </Card>
   );
-}
-
-interface RecentArticlesCardProps {
-  title: string;
-  icon: React.ReactNode;
-  path: string;
-  articles: any[];
 }
 
 function RecentArticlesCard({ title, icon, path, articles }: RecentArticlesCardProps) {
@@ -249,13 +291,6 @@ function RecentArticlesCard({ title, icon, path, articles }: RecentArticlesCardP
       </CardContent>
     </Card>
   );
-}
-
-interface RecentCommentsCardProps {
-  title: string;
-  icon: React.ReactNode;
-  path: string;
-  comments: any[];
 }
 
 function RecentCommentsCard({ title, icon, path, comments }: RecentCommentsCardProps) {
@@ -295,17 +330,7 @@ function RecentCommentsCard({ title, icon, path, comments }: RecentCommentsCardP
   );
 }
 
-function ActionCard({
-  title,
-  description,
-  icon,
-  path,
-}: {
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  path: string;
-}) {
+function ActionCard({ title, description, icon, path }: ActionCardProps) {
   return (
     <a href={path}>
       <Card className="hover:bg-muted/50 transition-colors">
