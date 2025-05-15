@@ -6,9 +6,9 @@ import { ArticleDetail } from '@/features/magazine/components/article-detail';
 import { use } from 'react';
 
 interface ArticlePageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
