@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { SUBSCRIPTION_TYPES } from '@/constants/subscription';
+import { SUBSCRIPTION_TYPES, SubscriptionType } from '@/constants/subscription';
 import { formatPrice } from '@/lib/utils';
 import { Loader2, CheckIcon, Heart } from 'lucide-react';
 import { SubscriptionDialog } from '@/features/subscribe/components/subscription-dialog';
@@ -38,7 +38,7 @@ export function SubscriptionForm({ onSuccess }: SubscriptionFormProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [submittedData, setSubmittedData] = useState<{
     email: string;
-    subscription_type: 'monthly' | 'yearly' | 'donate';
+    subscription_type: SubscriptionType;
   } | null>(null);
 
   const form = useForm<FormValues>({
@@ -53,17 +53,17 @@ export function SubscriptionForm({ onSuccess }: SubscriptionFormProps) {
     setIsSubmitting(true);
     
     try {
-      // 제출 데이터 저장
-      setSubmittedData({
-        email: values.email,
-        subscription_type: values.subscription_type as 'monthly' | 'yearly' | 'donate',
-      });
-      
       // 후원하기를 선택한 경우 바로 후원 페이지로 이동
       if (values.subscription_type === 'donate') {
         window.location.href = '/donate';
         return;
       }
+      
+      // 제출 데이터 저장 (donate가 아닌 경우만)
+      setSubmittedData({
+        email: values.email,
+        subscription_type: values.subscription_type as SubscriptionType,
+      });
       
       // 결제 다이얼로그 표시
       setIsDialogOpen(true);
