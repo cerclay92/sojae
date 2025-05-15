@@ -6,7 +6,7 @@ import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 
 // 서버 컴포넌트에서 관리자 권한 체크
 export async function checkAdminAccess() {
-  const cookieStore = await cookies();
+  const cookieStore = cookies();
   const supabase = createServerComponentClient({ cookies: () => cookieStore });
   const { data: { user }, error: userError } = await supabase.auth.getUser();
 
