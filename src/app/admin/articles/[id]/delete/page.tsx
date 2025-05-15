@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { use } from 'react';
 
-export default function DeleteArticlePage({ params }: { params: { id: string } }) {
+export default function DeleteArticlePage({ params }: { params: Promise<{ id: string }> }) {
   // params를 unwrap하여 안전하게 id에 접근
   const { id } = use(params);
   
