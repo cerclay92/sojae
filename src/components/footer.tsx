@@ -13,7 +13,7 @@ export function Footer() {
         <div className="flex flex-col gap-4">
           <Logo />
           <p className="text-sm text-muted-foreground max-w-xs">
-            서재 기반의 감성 콘텐츠를 블로그 스타일로 제공하는 온라인 매거진
+            책과 사람을 연결하는 인문학의 향연, 지식과 영감이 어우러진 문화 공간
           </p>
         </div>
         
@@ -64,30 +64,36 @@ export function Footer() {
         </div>
         
         <div>
-          <h3 className="text-lg font-medium mb-4">구독</h3>
+          <h3 className="text-lg font-medium mb-4">이용약관</h3>
           <ul className="space-y-2">
             <li>
               <Link 
-                href="/subscribe"
+                href="https://picturesque-ox-876.notion.site/1f4ae7b4e95380738a46eafb2db525df?pvs=4"
                 className="text-sm text-muted-foreground hover:text-primary"
+                target="_blank"
+                rel="noopener noreferrer"
               >
-                구독하기
+                개인정보 처리방침
               </Link>
             </li>
             <li>
               <Link 
-                href="/policy/privacy"
+                href="https://picturesque-ox-876.notion.site/1f4ae7b4e953801fb3b9eb89ce0fbb94?pvs=4"
                 className="text-sm text-muted-foreground hover:text-primary"
+                target="_blank"
+                rel="noopener noreferrer"
               >
-                개인정보처리방침
+                서비스 이용약관
               </Link>
             </li>
             <li>
               <Link 
-                href="/policy/terms"
+                href="https://picturesque-ox-876.notion.site/1f4ae7b4e95380ecbe1fe994c59f8dd3?pvs=4"
                 className="text-sm text-muted-foreground hover:text-primary"
+                target="_blank"
+                rel="noopener noreferrer"
               >
-                이용약관
+                오픈소스 라이선스
               </Link>
             </li>
           </ul>

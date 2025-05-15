@@ -20,7 +20,7 @@ type ToasterToast = ToastProps & {
 
 type Toast = Omit<ToasterToast, "id">
 
-type State = {
+interface State {
   toasts: ToasterToast[]
 }
 
@@ -48,10 +48,6 @@ type Action =
       type: typeof actionTypes.REMOVE_TOAST
       toastId?: string
     }
-
-interface State {
-  toasts: ToasterToast[]
-}
 
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
 
@@ -136,8 +132,6 @@ function dispatch(action: Action) {
     listener(memoryState)
   })
 }
-
-type Toast = Omit<ToasterToast, "id">
 
 function toast({ ...props }: Toast) {
   const id = Math.random().toString(36).substring(2, 9)

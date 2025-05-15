@@ -32,14 +32,14 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-// 타입 확장
-declare module "next-auth" {
-  interface Session {
-    user: {
-      id: string;
-      name?: string | null;
-      email?: string | null;
-      image?: string | null;
-    };
-  }
-}
+// 주석 처리: 이미 다른 곳에서 타입이 확장되어 있음
+// declare module "next-auth" {
+//   interface Session {
+//     user: {
+//       id: string;
+//       name?: string | null;
+//       email?: string | null;
+//       image?: string | null;
+//     };
+//   }
+// }

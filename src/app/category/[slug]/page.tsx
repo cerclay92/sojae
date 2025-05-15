@@ -2,7 +2,7 @@ import { MainLayout } from '@/components/layouts/main-layout';
 import { getPostCount, getPostsByCategory } from '@/features/magazine/api';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import { CATEGORY_MAP } from '@/constants/category';
+import { CATEGORY_MAP, CATEGORY_ID_TO_NUMERIC } from '@/constants/category';
 import { PostList } from '@/features/magazine/components/post-list';
 import { PopularPosts } from '@/features/magazine/components/popular-posts';
 import { CategoryHeader } from '@/features/magazine/components/category-header';
@@ -47,8 +47,8 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   let popularPosts = [];
   
   try {
-    posts = await getPostsByCategory(categoryId as any);
-    postCount = await getPostCount(categoryId as any) || 0;
+    posts = await getPostsByCategory(categoryId);
+    postCount = await getPostCount(categoryId) || 0;
     popularPosts = await getPopularPosts(5);
   } catch (error) {
     console.error(`카테고리(${categoryId}) 데이터 로드 중 오류 발생:`, error);

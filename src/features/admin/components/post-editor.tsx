@@ -1,379 +1,343 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { useRouter } from 'next/navigation';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, Save, Trash2 } from 'lucide-react';
-import { CATEGORIES } from '@/constants/category';
-import { useRouter } from 'next/navigation';
-import { getSupabaseClient } from '@/lib/supabase-client';
-import { generateSlug } from '@/lib/utils';
-import { createPost, updatePost, deletePost } from '@/features/magazine/api';
-import { Post } from '@/features/magazine/api';
-import { useToast } from '@/components/ui/use-toast';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Loader2, Save } from "lucide-react";
+import { createClient } from '@supabase/supabase-js';
+import dynamic from "next/dynamic";
+import "react-quill-new/dist/quill.snow.css";
+import { uploadImageToSupabase, fetchSupabaseImages } from "../lib/image";
 
-const formSchema = z.object({
-  title: z.string().min(1, '제목을 입력해주세요.'),
-  content: z.string().min(1, '내용을 입력해주세요.'),
-  excerpt: z.string().min(1, '요약을 입력해주세요.').max(200, '요약은 최대 200자까지 입력 가능합니다.'),
-  category: z.string().min(1, '카테고리를 선택해주세요.'),
-  thumbnail_url: z.string().optional(),
-  is_premium: z.boolean().default(false),
-  published: z.boolean().default(false),
+// 클라이언트 사이드에서만 로드하기 위해 dynamic import 사용
+const ReactQuill = dynamic(() => import("react-quill-new"), {
+  ssr: false,
+  loading: () => <p>로딩 중...</p>,
 });
 
+// Quill 에디터 모듈 설정
+const quillModules = {
+  toolbar: [
+    [{ header: [1, 2, 3, 4, 5, 6, false] }],
+    ["bold", "italic", "underline", "strike"],
+    [{ list: "ordered" }, { list: "bullet" }],
+    [{ color: [] }, { background: [] }],
+    ["link", "image"],
+    ["clean"],
+  ],
+};
+
+interface Category {
+  id: number;
+  name: string;
+  description?: string;
+  slug?: string;
+  icon?: string;
+}
+
 interface PostEditorProps {
-  post?: Post;
+  post?: any;
 }
 
 export function PostEditor({ post }: PostEditorProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const { toast } = useToast();
-  
-  // 클라이언트 사이드 렌더링 확인
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [formData, setFormData] = useState({
+    title: post?.title || "",
+    slug: post?.slug || "",
+    content: post?.content || "",
+    excerpt: post?.excerpt || "",
+    category_id: post?.category?.toString() || "",
+    published: post?.published || false,
+    featured_image: post?.thumbnail_url || ""
+  });
+  const [error, setError] = useState("");
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [images, setImages] = useState<string[]>([]);
+
+  // 마운트 시 카테고리 데이터와 이미지 가져오기
   useEffect(() => {
-    // 인증 확인
-    const checkAuth = async () => {
+    const fetchCategories = async () => {
       try {
-        const supabase = getSupabaseClient();
-        const { data } = await supabase.auth.getSession();
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
         
-        if (!data.session) {
-          router.push('/admin');
+        const { data, error } = await supabase
+          .from('categories')
+          .select('*')
+          .order('name');
+        
+        if (error) {
+          throw new Error(error.message);
         }
-      } catch (error) {
-        console.error('인증 확인 실패:', error);
-        router.push('/admin');
+        
+        setCategories(data || []);
+      } catch (err) {
+        console.error('카테고리 로드 실패:', err);
+        setError('카테고리를 불러오는 중 오류가 발생했습니다.');
       }
     };
+
+    fetchCategories();
     
-    checkAuth();
-  }, [router]);
+    fetchSupabaseImages().then(urls => {
+      setImages(urls);
+    }).catch(err => {
+      console.error("이미지 로드 실패:", err);
+    });
+  }, []);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: post?.title || '',
-      content: post?.content || '',
-      excerpt: post?.excerpt || '',
-      category: post?.category || '',
-      thumbnail_url: post?.thumbnail_url || '',
-      is_premium: post?.is_premium || false,
-      published: post?.published || false,
-    },
-  });
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const handleSwitchChange = (checked: boolean) => {
+    setFormData((prev) => ({ ...prev, published: checked }));
+  };
+
+  const handleSelectChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, category_id: value }));
+  };
+
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9가-힣]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+  };
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      title: value,
+      slug: generateSlug(value),
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
     setIsSubmitting(true);
-    setError(null);
-    
+
     try {
-      // 슬러그 생성
-      const slug = post?.slug || generateSlug(values.title);
-      
-      // 게시물 생성 또는 업데이트
-      if (post) {
-        // 게시물 업데이트 로직
-        await updatePost(post.id, {
-          title: values.title,
-          content: values.content,
-          excerpt: values.excerpt,
-          category: values.category,
-          slug,
-          thumbnail_url: values.thumbnail_url || null,
-          is_premium: values.is_premium,
-          published: values.published,
-        });
-        
-        toast({
-          title: "게시물이 업데이트되었습니다.",
-          description: "성공적으로 변경사항이 저장되었습니다.",
-        });
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+
+      // 데이터 변환
+      const articleData = {
+        ...formData,
+        category_id: parseInt(formData.category_id),
+        featured_image: formData.featured_image
+      };
+
+      let result;
+      if (post?.id) {
+        // 기존 게시글 수정
+        result = await supabase
+          .from('articles')
+          .update(articleData)
+          .eq('id', post.id)
+          .select();
       } else {
-        await createPost({
-          title: values.title,
-          content: values.content,
-          excerpt: values.excerpt,
-          category: values.category,
-          slug,
-          thumbnail_url: values.thumbnail_url || null,
-          is_premium: values.is_premium,
-          published: values.published,
-        });
-        
-        toast({
-          title: "게시물이 생성되었습니다.",
-          description: "새로운 게시물이 성공적으로 생성되었습니다.",
-        });
+        throw new Error("게시글 ID가 없습니다.");
       }
-      
-      // 성공 후 대시보드로 이동
-      router.push('/admin/dashboard');
-    } catch (error) {
-      console.error('게시물 저장 오류:', error);
-      setError('게시물을 저장하는 중 오류가 발생했습니다.');
+
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+
+      router.push("/admin/articles");
+      router.refresh();
+    } catch (err) {
+      console.error("게시글 저장 실패:", err);
+      setError("게시글 저장 중 오류가 발생했습니다.");
     } finally {
       setIsSubmitting(false);
     }
   };
-  
-  const handleDelete = async () => {
-    if (!post) return;
-    
-    setIsDeleting(true);
-    
-    try {
-      await deletePost(post.id);
-      toast({
-        title: "게시물이 삭제되었습니다.",
-        description: "게시물이 성공적으로 삭제되었습니다.",
-      });
-      router.push('/admin/dashboard');
-    } catch (error) {
-      console.error('게시물 삭제 오류:', error);
-      setError('게시물을 삭제하는 중 오류가 발생했습니다.');
-    } finally {
-      setIsDeleting(false);
-    }
+
+  // 썸네일 업로드 핸들러
+  const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.[0]) return;
+    setThumbnailFile(e.target.files[0]);
+    const url = await uploadImageToSupabase(e.target.files[0]);
+    setFormData((prev) => ({ ...prev, featured_image: url }));
+  };
+
+  // 본문 이미지 업로드 핸들러
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.[0]) return;
+    const url = await uploadImageToSupabase(e.target.files[0]);
+    setImages((prev) => [...prev, url]);
+  };
+
+  // 이미지 클릭 시 에디터에 삽입
+  const insertImageToEditor = (url: string) => {
+    // 현재 content에 이미지 HTML 태그 추가
+    setFormData((prev) => ({
+      ...prev,
+      content: prev.content + `<p><img src="${url}" alt="업로드 이미지" /></p>`
+    }));
+  };
+
+  // 기존 이미지 불러오기
+  const handleFetchImages = async () => {
+    const urls = await fetchSupabaseImages();
+    setImages(urls);
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="space-y-6">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>제목</FormLabel>
-                  <FormControl>
-                    <Input placeholder="게시물 제목" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="excerpt"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>요약</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="게시물 요약 (최대 200자)" 
-                      {...field} 
-                      rows={3}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>카테고리</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="카테고리 선택" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {CATEGORIES.map((category) => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="thumbnail_url"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>썸네일 URL</FormLabel>
-                    <FormControl>
-                      <Input placeholder="https://..." {...field} value={field.value || ''} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-6">
-              <FormField
-                control={form.control}
-                name="is_premium"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>구독자 전용 콘텐츠</FormLabel>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="published"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>즉시 발행</FormLabel>
-                    </div>
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-          
-          <FormField
-            control={form.control}
-            name="content"
-            render={({ field }) => (
-              <FormItem className="h-full">
-                <FormLabel>내용</FormLabel>
-                <FormControl>
-                  <Textarea 
-                    placeholder="게시물 내용을 입력하세요..." 
-                    {...field} 
-                    className="h-[300px] min-h-[300px] resize-none"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        
-        {error && (
-          <div className="text-sm text-destructive">{error}</div>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="flex justify-between items-center">
+        <Button type="button" variant="outline" onClick={() => router.push("/admin/articles")}>목록으로</Button>
+        <Button type="button" variant="secondary" onClick={handleFetchImages}>기존 이미지 불러오기</Button>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="title">제목</Label>
+        <Input
+          id="title"
+          name="title"
+          value={formData.title}
+          onChange={handleTitleChange}
+          placeholder="게시글 제목"
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="slug">슬러그</Label>
+        <Input
+          id="slug"
+          name="slug"
+          value={formData.slug}
+          onChange={handleChange}
+          placeholder="url-friendly-slug"
+          required
+        />
+        <p className="text-sm text-muted-foreground">
+          URL에 사용될 식별자입니다. 자동으로 생성되지만 수정할 수 있습니다.
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="category_id">카테고리</Label>
+        <Select
+          value={formData.category_id}
+          onValueChange={handleSelectChange}
+          required
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="카테고리 선택" />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map((category) => (
+              <SelectItem key={category.id} value={category.id.toString()}>
+                {category.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="excerpt">요약</Label>
+        <Textarea
+          id="excerpt"
+          name="excerpt"
+          value={formData.excerpt}
+          onChange={handleChange}
+          placeholder="게시글 요약 (목록에 표시됩니다)"
+          rows={3}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="featured_image">대표 썸네일</Label>
+        <Input type="file" accept="image/*" onChange={handleThumbnailUpload} />
+        {formData.featured_image && (
+          <img src={formData.featured_image} alt="썸네일 미리보기" className="w-32 h-32 object-cover" />
         )}
-        
-        <div className="flex flex-wrap justify-between items-center gap-4">
-          {post ? (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button type="button" variant="destructive" disabled={isDeleting || isSubmitting}>
-                  {isDeleting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      삭제 중...
-                    </>
-                  ) : (
-                    <>
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      삭제하기
-                    </>
-                  )}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>게시물 삭제</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    정말로 이 게시물을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>취소</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete}>삭제</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          ) : (
-            <div /> {/* 빈 div로 플렉스 레이아웃 유지 */}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="content">내용</Label>
+        <div className="min-h-[400px] border rounded-md">
+          {typeof window !== 'undefined' && (
+            <ReactQuill
+              theme="snow"
+              value={formData.content}
+              onChange={(value) => setFormData((prev) => ({ ...prev, content: value }))}
+              modules={quillModules}
+              className="h-[350px]"
+            />
           )}
-          
-          <div className="flex gap-4 ml-auto">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => router.push('/admin/dashboard')}
-              disabled={isSubmitting || isDeleting}
-            >
-              취소
-            </Button>
-            <Button type="submit" disabled={isSubmitting || isDeleting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  저장 중...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  저장하기
-                </>
-              )}
-            </Button>
+        </div>
+        <div className="mt-4">
+          <Label>이미지 업로드</Label>
+          <Input type="file" accept="image/*" onChange={handleImageUpload} className="mb-2" />
+          <div className="text-sm text-muted-foreground mb-2">
+            이미지를 업로드하거나 아래 목록에서 클릭하여 본문에 삽입할 수 있습니다.
+          </div>
+          <div className="flex flex-wrap gap-2 border p-2 rounded-md">
+            {images.length > 0 ? (
+              images.map((url) => (
+                <img
+                  key={url}
+                  src={url}
+                  alt="업로드 이미지"
+                  className="w-16 h-16 object-cover cursor-pointer hover:opacity-80"
+                  onClick={() => insertImageToEditor(url)}
+                />
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground p-2">업로드된 이미지가 없습니다.</p>
+            )}
           </div>
         </div>
-      </form>
-    </Form>
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="published"
+          checked={formData.published}
+          onCheckedChange={handleSwitchChange}
+        />
+        <Label htmlFor="published">공개 여부</Label>
+      </div>
+
+      {error && <div className="text-sm font-medium text-red-500">{error}</div>}
+
+      <div className="flex justify-end space-x-4">
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="mr-2 h-4 w-4" />
+          )}
+          저장
+        </Button>
+      </div>
+    </form>
   );
 } 

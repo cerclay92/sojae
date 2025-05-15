@@ -14,7 +14,7 @@ interface SubscriptionDialogProps {
   onOpenChange: (open: boolean) => void;
   data: {
     email: string;
-    subscription_type: 'monthly' | 'yearly';
+    subscription_type: 'monthly' | 'yearly' | 'donate';
   };
 }
 

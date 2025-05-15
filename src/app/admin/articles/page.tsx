@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { checkAdminAccess } from "@/lib/admin-auth";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, MoreHorizontal, ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 import {
   Table,
@@ -14,6 +14,12 @@ import {
 } from "@/components/ui/table";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const metadata: Metadata = {
   title: "게시글 관리 | 서재",
@@ -47,6 +53,14 @@ export default async function ArticlesPage() {
     <div className="space-y-6 p-6 lg:p-10 max-w-7xl mx-auto">
       <div className="flex justify-between items-center">
         <div>
+          <div className="flex items-center gap-4 mb-2">
+            <Button variant="ghost" size="sm" asChild className="gap-1">
+              <Link href="/admin">
+                <ArrowLeft className="h-4 w-4" />
+                관리자 대시보드
+              </Link>
+            </Button>
+          </div>
           <h1 className="text-3xl font-bold">게시글 관리</h1>
           <p className="text-muted-foreground">게시글 목록, 작성, 수정, 삭제</p>
         </div>
@@ -69,6 +83,7 @@ export default async function ArticlesPage() {
               <TableHead>작성일</TableHead>
               <TableHead>수정일</TableHead>
               <TableHead className="text-right">조회수</TableHead>
+              <TableHead className="w-[60px]">액션</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -103,11 +118,38 @@ export default async function ArticlesPage() {
                     {format(new Date(article.updated_at), "yyyy-MM-dd")}
                   </TableCell>
                   <TableCell className="text-right">{article.views || 0}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">메뉴</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                          <Link href={`/admin/articles/${article.id}`} className="flex items-center">
+                            <Pencil className="mr-2 h-4 w-4" />
+                            <span>수정</span>
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-red-600"
+                          asChild
+                        >
+                          <Link href={`/admin/articles/${article.id}/delete`} className="flex items-center">
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            <span>삭제</span>
+                          </Link>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
+                <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
                   게시글이 없습니다.
                 </TableCell>
               </TableRow>

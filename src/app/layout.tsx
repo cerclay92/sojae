@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
 import { Geist_Mono } from 'next/font/google';
 import './globals.css';
-import Providers from './providers';
+import { Providers } from './providers';
 import { SITE_CONFIG } from '@/constants/metadata';
-import { AuthProvider } from '@/components/auth/auth-provider';
 
 // 모노스페이스 폰트는 코드 표시 등에 계속 사용
 const geistMono = Geist_Mono({
@@ -64,7 +63,7 @@ export default function RootLayout({
       <body
         className={`${geistMono.variable} min-h-screen bg-background antialiased`}
       >
-        <Providers><AuthProvider>{children}</AuthProvider></Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

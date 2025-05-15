@@ -1,19 +1,18 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { Metadata } from "next";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { checkAdminAccess } from "@/lib/admin-auth";
+import { ArticleForm } from "@/features/admin/components/article-form";
 
 export const metadata: Metadata = {
-  title: "게시글 상세 | 서재",
+  title: "게시글 수정 | 서재",
   description: "게시글 상세 및 수정",
 };
 
 async function getArticle(id: string) {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
   const { data, error } = await supabase
     .from("articles")
@@ -24,32 +23,43 @@ async function getArticle(id: string) {
   return data;
 }
 
-export default async function ArticleDetailPage({ params }: { params: { id: string } }) {
-  const article = await getArticle(params.id);
-  if (!article) return notFound();
-
-  async function handleDelete() {
-    "use server";
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-    await supabase.from("articles").delete().eq("id", params.id);
-    redirect("/admin/articles");
+async function getCategories() {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+  const { data, error } = await supabase
+    .from("categories")
+    .select("*")
+    .order("name");
+  if (error) {
+    console.error("카테고리 조회 실패:", error);
+    return [];
   }
+  return data;
+}
+
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function ArticleDetailPage({ params }: PageProps) {
+  await checkAdminAccess();
+  
+  const resolvedParams = await params;
+  const id = resolvedParams.id;
+  const article = await getArticle(id);
+  if (!article) return notFound();
+  
+  const categories = await getCategories();
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">게시글 상세</h1>
-      <form className="space-y-4">
-        <Input value={article.title} readOnly />
-        <Textarea value={article.content} readOnly rows={10} />
-        <div className="flex gap-2">
-          <Button type="button" variant="destructive" formAction={handleDelete}>
-            삭제
-          </Button>
-        </div>
-      </form>
+    <div className="max-w-4xl mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-6">게시글 수정</h1>
+      <ArticleForm 
+        article={article} 
+        categories={categories}
+      />
     </div>
   );
 } 

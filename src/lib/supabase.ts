@@ -52,6 +52,50 @@ export type Database = {
           is_premium?: boolean;
         };
       };
+      articles: {
+        Row: {
+          id: string;
+          created_at: string;
+          updated_at: string;
+          title: string;
+          content: string;
+          featured_image: string | null;
+          category_id: string;
+          excerpt: string;
+          slug: string;
+          views: number;
+          published: boolean;
+          author_id: string | null;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          title: string;
+          content: string;
+          featured_image?: string | null;
+          category_id: string;
+          excerpt: string;
+          slug: string;
+          views?: number;
+          published?: boolean;
+          author_id?: string | null;
+        };
+        Update: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          title?: string;
+          content?: string;
+          featured_image?: string | null;
+          category_id?: string;
+          excerpt?: string;
+          slug?: string;
+          views?: number;
+          published?: boolean;
+          author_id?: string | null;
+        };
+      };
       subscriptions: {
         Row: {
           id: string;

@@ -10,12 +10,11 @@ import {
   FieldValues,
   FormProvider,
   useFormContext,
+  UseFormReturn,
 } from 'react-hook-form';
 
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
-
-const Form = FormProvider;
 
 type FormFieldContextValue<
   TFieldValues extends FieldValues = FieldValues,
@@ -167,13 +166,36 @@ const FormMessage = React.forwardRef<
 });
 FormMessage.displayName = 'FormMessage';
 
+interface FormProps<T extends FieldValues = FieldValues> {
+  form: UseFormReturn<T>;
+  children?: React.ReactNode;
+  className?: string;
+  onSubmit?: (e: React.FormEvent<HTMLFormElement>) => void;
+}
+
+function Form<T extends FieldValues>({
+  form,
+  children,
+  className,
+  onSubmit,
+  ...props
+}: FormProps<T>) {
+  return (
+    <FormProvider {...form}>
+      <form onSubmit={onSubmit} className={className} {...props}>
+        {children}
+      </form>
+    </FormProvider>
+  );
+}
+
 export {
   useFormField,
-  Form,
   FormItem,
   FormLabel,
   FormControl,
   FormDescription,
   FormMessage,
   FormField,
+  Form,
 };

@@ -61,13 +61,17 @@ export function PostCard({ post, variant = 'default' }: PostCardProps) {
               className="object-cover"
               sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
             />
+            {post.category && (
+              <div className="absolute top-2 left-2">
+                <Badge className="bg-emerald-600 hover:bg-emerald-700">
+                  {CATEGORY_MAP[post.category as keyof typeof CATEGORY_MAP]?.name}
+                </Badge>
+              </div>
+            )}
           </div>
           <div className="w-full sm:w-2/3 flex flex-col">
             <CardHeader className="p-3 sm:p-4 md:p-6">
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <Badge variant="outline" className="mb-1 sm:mb-2 text-xs sm:text-sm">
-                  {CATEGORY_MAP[post.category as keyof typeof CATEGORY_MAP]?.name}
-                </Badge>
                 {post.is_premium && (
                   <Badge variant="secondary" className="text-xs sm:text-sm">
                     구독자 전용
@@ -82,7 +86,7 @@ export function PostCard({ post, variant = 'default' }: PostCardProps) {
             </CardHeader>
             <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
               <p className="text-sm md:text-base text-muted-foreground line-clamp-2 sm:line-clamp-3">
-                {truncateText(post.excerpt, 150)}
+                {post.excerpt ? truncateText(post.excerpt, 150) : '내용이 없습니다.'}
               </p>
             </CardContent>
             <CardFooter className="flex justify-between items-center mt-auto p-3 sm:p-4 md:p-6 pt-0">
@@ -115,6 +119,13 @@ export function PostCard({ post, variant = 'default' }: PostCardProps) {
           className="object-cover"
           sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
         />
+        <div className="absolute top-2 left-2">
+          {post.category && (
+            <Badge className="bg-emerald-600 hover:bg-emerald-700 mb-2">
+              {CATEGORY_MAP[post.category as keyof typeof CATEGORY_MAP]?.name}
+            </Badge>
+          )}
+        </div>
         {post.is_premium && (
           <Badge variant="secondary" className="absolute top-2 right-2 text-xs sm:text-sm">
             구독자 전용
@@ -122,9 +133,6 @@ export function PostCard({ post, variant = 'default' }: PostCardProps) {
         )}
       </div>
       <CardHeader className="p-3 sm:p-4 md:p-6">
-        <Badge variant="outline" className="mb-1 sm:mb-2 w-fit text-xs sm:text-sm">
-          {CATEGORY_MAP[post.category as keyof typeof CATEGORY_MAP]?.name}
-        </Badge>
         <Link href={`/post/${post.slug}`}>
           <h3 className="text-base sm:text-lg md:text-xl font-bold leading-tight hover:text-primary transition-colors">
             {post.title}
@@ -133,7 +141,7 @@ export function PostCard({ post, variant = 'default' }: PostCardProps) {
       </CardHeader>
       <CardContent className="flex-grow p-3 sm:p-4 md:p-6 pt-0">
         <p className="text-sm md:text-base text-muted-foreground line-clamp-2">
-          {truncateText(post.excerpt, 100)}
+          {post.excerpt ? truncateText(post.excerpt, 100) : '내용이 없습니다.'}
         </p>
       </CardContent>
       <CardFooter className="flex justify-between items-center p-3 sm:p-4 md:p-6 pt-0">

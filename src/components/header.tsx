@@ -40,10 +40,6 @@ export function Header() {
       name: category.name,
       href: `/category/${category.id}`,
     })),
-    {
-      name: '구독하기',
-      href: '/subscribe',
-    },
   ];
 
   const isActive = (href: string) => {
@@ -85,7 +81,7 @@ export function Header() {
               {item.name}
             </Link>
           ))}
-          <Button asChild variant="default" size="sm">
+          <Button asChild size="sm" className="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 shadow-sm">
             <Link href="/subscribe">구독하기</Link>
           </Button>
         </nav>
@@ -109,7 +105,7 @@ export function Header() {
                 {item.name}
               </Link>
             ))}
-            <Button className="mt-6" asChild>
+            <Button className="mt-6 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 shadow-sm" asChild>
               <Link href="/subscribe">구독하기</Link>
             </Button>
           </nav>

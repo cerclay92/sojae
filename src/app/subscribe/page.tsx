@@ -38,7 +38,7 @@ export default function SubscribePage() {
               <h1 className="text-3xl font-bold tracking-tight mb-4">구독하기</h1>
               <p className="text-muted-foreground mb-8">
                 서재, 사람을 잇다 구독을 통해 매달 새로운 콘텐츠를 이메일로 받아보세요.
-                월 1,000원으로 모든 프리미엄 콘텐츠를 이용하실 수 있습니다.
+                월 1,100원으로 모든 프리미엄 콘텐츠를 이용하실 수 있습니다.
               </p>
               
               <div className="space-y-4 mb-12">

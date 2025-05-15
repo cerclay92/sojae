@@ -13,4 +13,13 @@ export const SITE_CONFIG = {
       url: 'https://sojae.vercel.app',
     },
   ],
+  categories: [
+    { id: 'essay', name: '에세이' },
+    { id: 'review', name: '리뷰' },
+    { id: 'interview', name: '인터뷰' },
+    { id: 'culture', name: '문화' },
+    { id: 'lifestyle', name: '라이프스타일' },
+    { id: 'tech', name: '테크' },
+    { id: 'general', name: '일반' }
+  ]
 } as const; 

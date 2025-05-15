@@ -1,6 +1,30 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { createClient } from "@supabase/supabase-js";
+import { User } from "next-auth";
+
+// User 타입 확장
+declare module "next-auth" {
+  interface User {
+    role?: string;
+  }
+  interface Session {
+    user: {
+      id?: string;
+      name?: string;
+      email?: string;
+      image?: string;
+      role?: string;
+    }
+  }
+}
+
+// JWT 타입 확장
+declare module "next-auth/jwt" {
+  interface JWT {
+    role?: string;
+  }
+}
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;

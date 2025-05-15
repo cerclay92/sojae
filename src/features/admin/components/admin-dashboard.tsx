@@ -73,9 +73,8 @@ export function AdminDashboard() {
   
   const handleSignOut = async () => {
     try {
-      const supabase = getSupabaseClient();
-      await supabase.auth.signOut();
-      router.push('/admin');
+      // API 경로를 통해 로그아웃 (Next-Auth와 Supabase 모두 처리)
+      window.location.href = '/api/auth/signout';
     } catch (error) {
       console.error('로그아웃 실패:', error);
     }
