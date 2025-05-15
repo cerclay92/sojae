@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { Flame, InfoIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { formatRelativeDate } from '@/lib/utils';
@@ -32,6 +31,24 @@ export function PopularPosts({ posts }: PopularPostsProps) {
     );
   }
 
+  // 카테고리별 뱃지 색상 정의
+  const getBadgeVariant = (category: string) => {
+    switch (category) {
+      case '에세이':
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case '인문학':
+        return 'bg-green-50 text-green-700 border-green-200';
+      case '문화':
+        return 'bg-teal-50 text-teal-700 border-teal-200';
+      case '상담':
+        return 'bg-lime-50 text-lime-700 border-lime-200';
+      case '인터뷰':
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      default:
+        return 'bg-slate-50 text-slate-700 border-slate-200';
+    }
+  };
+
   return (
     <div className="border rounded-lg p-4 md:p-6">
       <div className="flex items-center gap-2 mb-4 md:mb-6">
@@ -39,31 +56,27 @@ export function PopularPosts({ posts }: PopularPostsProps) {
         <h3 className="text-lg md:text-xl font-bold">인기 글</h3>
       </div>
       
-      <div className="space-y-4 md:space-y-6">
+      <div className="space-y-4">
         {posts.map((post, index) => (
           <div key={post.id} className="group">
-            <Link href={`/articles/${post.id}`} className="flex gap-3 md:gap-4">
-              <div className="relative w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0">
-                <Image
-                  src={post.thumbnail_url || `https://picsum.photos/id/${(parseInt(post.id) % 100) + index}/800/600`}
-                  alt={post.title}
-                  fill
-                  className="object-cover rounded-md"
-                  sizes="(max-width: 768px) 56px, 64px"
-                />
+            <Link href={`/articles/${post.id}`} className="flex gap-3">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                <span className="font-medium text-slate-700">{index + 1}</span>
               </div>
               <div className="flex-1 min-w-0">
-                <Badge 
-                  variant="outline" 
-                  className="mb-1 text-xs"
-                >
-                  {post.category || '일반'}
-                </Badge>
-                <h4 className="font-medium mb-1 text-sm sm:text-base group-hover:text-primary transition-colors line-clamp-2">
+                <h4 className="font-medium text-sm sm:text-base group-hover:text-primary transition-colors line-clamp-2">
                   {post.title}
                 </h4>
-                <div className="text-xs text-muted-foreground">
-                  {formatRelativeDate(post.created_at)}
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge 
+                    variant="outline" 
+                    className={`text-xs px-1.5 py-0 ${getBadgeVariant(post.category || '일반')}`}
+                  >
+                    {post.category || '일반'}
+                  </Badge>
+                  <div className="text-xs text-muted-foreground">
+                    {formatRelativeDate(post.created_at)}
+                  </div>
                 </div>
               </div>
             </Link>
@@ -76,7 +89,7 @@ export function PopularPosts({ posts }: PopularPostsProps) {
           href="/articles" 
           className="text-sm text-primary hover:text-primary/80 transition-colors flex justify-center"
         >
-          모든 인기 글 보기
+          모든 인기글 보기
         </Link>
       </div>
     </div>

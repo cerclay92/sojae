@@ -48,7 +48,7 @@ export function Hero() {
               </Link>
             </Button>
             <Button asChild size="lg" className="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 shadow-md">
-              <Link href="/posts" className="text-base px-8 py-6">
+              <Link href="/articles" className="text-base px-8 py-6">
                 모든 콘텐츠 보기
               </Link>
             </Button>

@@ -14,10 +14,22 @@ export async function GET() {
     cookieStore.delete("__Secure-next-auth.session-token");
 
     // 로그인 페이지로 리다이렉트
-    return NextResponse.redirect(new URL("/admin/login", process.env.NEXTAUTH_URL || "http://localhost:3000"));
+    // 절대 URL 생성을 위한 기본 URL 설정
+    const baseUrl = process.env.NEXTAUTH_URL || 
+                   process.env.NEXT_PUBLIC_API_URL || 
+                   "http://localhost:3000";
+    
+    const loginUrl = new URL("/admin/login", baseUrl);
+    return NextResponse.redirect(loginUrl);
   } catch (error) {
     console.error("로그아웃 처리 중 오류:", error);
-    return NextResponse.redirect(new URL("/admin", process.env.NEXTAUTH_URL || "http://localhost:3000"));
+    
+    const baseUrl = process.env.NEXTAUTH_URL || 
+                   process.env.NEXT_PUBLIC_API_URL || 
+                   "http://localhost:3000";
+    
+    const adminUrl = new URL("/admin", baseUrl);
+    return NextResponse.redirect(adminUrl);
   }
 }
 

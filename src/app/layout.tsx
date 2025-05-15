@@ -43,11 +43,11 @@ export const metadata: Metadata = {
     creator: '@sojae',
   },
   icons: {
-    icon: 'https://fntiuopyonutxkeeipsc.supabase.co/storage/v1/object/public/video//favicon.ico',
-    shortcut: 'https://fntiuopyonutxkeeipsc.supabase.co/storage/v1/object/public/video//favicon.ico',
-    apple: 'https://fntiuopyonutxkeeipsc.supabase.co/storage/v1/object/public/video//favicon.ico',
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/icons/apple-touch-icon.png',
   },
-  manifest: `${SITE_CONFIG.url}/site.webmanifest`,
+  manifest: '/site.webmanifest',
 };
 
 export default function RootLayout({
@@ -57,9 +57,7 @@ export default function RootLayout({
 }>) {
   return (
     <html suppressHydrationWarning lang="ko">
-      <head>
-        <link rel="icon" href="https://fntiuopyonutxkeeipsc.supabase.co/storage/v1/object/public/video//favicon.ico" />
-      </head>
+      <head />
       <body
         className={`${geistMono.variable} min-h-screen bg-background antialiased`}
       >

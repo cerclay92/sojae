@@ -16,14 +16,7 @@ import { getSupabaseServer } from '@/lib/supabase-server';
 
 export const metadata: Metadata = {
   title: SITE_CONFIG.name,
-  description: SITE_CONFIG.description,
-  manifest: '/site.webmanifest',
-  icons: {
-    icon: '/favicon.ico',
-    apple: [
-      { url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }
-    ]
-  }
+  description: SITE_CONFIG.description
 };
 
 // 샘플 게시글 데이터
