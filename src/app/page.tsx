@@ -192,7 +192,7 @@ async function getArticles(limit = 5) {
       ...article,
       category: categoryMap[article.category_id] || 
                (typeof article.category_id === 'string' && article.category_id) || 
-               article.category || '기타'
+               (article as any).category || '기타'
     })) || [];
   } catch (error) {
     console.error('데이터 가져오기 오류:', error);
