@@ -25,9 +25,13 @@ export async function GET(
       .single();
     
     // 조회수 증가 (RPC 함수 호출)
-    await supabase.rpc('increment_article_views', {
-      article_id: id
-    }).catch(e => console.error('조회수 증가 실패:', e));
+    try {
+      await supabase.rpc('increment_article_views', {
+        article_id: id
+      });
+    } catch (e) {
+      console.error('조회수 증가 실패:', e);
+    }
     
     if (error) {
       if (error.code === 'PGRST116') {
