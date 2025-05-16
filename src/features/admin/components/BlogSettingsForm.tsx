@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,6 +35,7 @@ type FormValues = z.infer<typeof formSchema>;
 export default function BlogSettingsForm() {
   const { settings, isLoading, updateSetting, isUpdating } = useBlogSettings();
   const [isSaving, setIsSaving] = useState(false);
+  const initializedRef = useRef(false);
 
   // 폼 설정
   const form = useForm<FormValues>({
@@ -48,10 +49,25 @@ export default function BlogSettingsForm() {
     },
   });
 
-  // 설정이 로드되면 폼 값 업데이트
-  if (settings && !isLoading && !form.formState.isDirty) {
-    form.reset(settings);
-  }
+  // 설정이 로드되면 폼 값 업데이트 (useEffect 사용)
+  useEffect(() => {
+    // 이미 초기화됐거나 로딩 중이거나 설정이 없는 경우 실행하지 않음
+    if (initializedRef.current || isLoading || !settings) {
+      return;
+    }
+    
+    // 한 번만 초기화
+    initializedRef.current = true;
+    
+    // 폼 값 설정
+    form.reset({
+      blog_title: settings.blog_title || "",
+      blog_description: settings.blog_description || "",
+      posts_per_page: settings.posts_per_page || 10,
+      comment_approval_required: settings.comment_approval_required || false,
+      allow_guest_comments: settings.allow_guest_comments || false,
+    });
+  }, [form, settings, isLoading]);
 
   // 폼 제출 처리
   async function onSubmit(values: FormValues) {
@@ -65,7 +81,8 @@ export default function BlogSettingsForm() {
       await updateSetting("comment_approval_required", values.comment_approval_required);
       await updateSetting("allow_guest_comments", values.allow_guest_comments);
       
-      form.reset(values);
+      // 폼 상태 리셋 (변경 감지 상태 초기화)
+      form.reset(values, { keepValues: true });
     } finally {
       setIsSaving(false);
     }

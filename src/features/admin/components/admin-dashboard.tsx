@@ -82,8 +82,9 @@ export function AdminDashboard() {
         document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
       });
       
-      // API 경로를 통해 로그아웃 (Next-Auth와 Supabase 모두 처리)
-      window.location.href = '/api/auth/signout';
+      // GET 방식으로 로그아웃 API 호출 (타임스탬프 추가로 캐시 방지)
+      const timestamp = new Date().getTime();
+      window.location.href = `/api/auth/signout?t=${timestamp}`;
     } catch (error) {
       console.error('로그아웃 실패:', error);
     }
