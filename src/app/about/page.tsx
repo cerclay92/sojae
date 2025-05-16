@@ -109,13 +109,10 @@ export default function AboutPage() {
                 <div className="flex flex-col sm:flex-row gap-6 mb-6 items-center sm:items-start">
                   <div className="relative w-40 h-40 rounded-full overflow-hidden flex-shrink-0 border-4 border-emerald-100">
                     <Image 
-                      src="/images/ojiseop.jpg" 
+                      src="https://picsum.photos/id/23/400/400" 
                       alt="오지섭 교수"
                       fill
                       className="object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src = "https://picsum.photos/id/23/400/400";
-                      }}
                     />
                   </div>
                   <div>
@@ -143,13 +140,10 @@ export default function AboutPage() {
                 <div className="flex flex-col sm:flex-row gap-6 mb-6 items-center sm:items-start">
                   <div className="relative w-40 h-40 rounded-full overflow-hidden flex-shrink-0 border-4 border-emerald-100">
                     <Image 
-                      src="/images/parkjaeshin.jpg" 
+                      src="https://picsum.photos/id/76/400/400" 
                       alt="박재신" 
                       fill
                       className="object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src = "https://picsum.photos/id/76/400/400";
-                      }}
                     />
                   </div>
                   <div>

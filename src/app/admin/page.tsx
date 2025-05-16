@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   BookOpen, FileText, MessageSquare, Users, Tag, BarChart2, 
-  LogOut, Loader2, Settings, PenTool, Bell, Shield, Sparkles
+  LogOut, Loader2, Settings, PenTool, Bell, Shield, Sparkles, Home
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -159,120 +159,127 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
-      <div className="text-center mb-10 bg-gradient-to-r from-emerald-600 to-blue-600 text-white p-8 rounded-lg shadow-md">
-        <h1 className="text-4xl font-bold mb-3">관리자 대시보드</h1>
-        <p className="text-xl opacity-90">블로그 통계 및 컨텐츠 관리</p>
+    <div className="space-y-6 sm:space-y-8 mx-auto px-4 py-6 sm:px-6 lg:px-8 max-w-7xl">
+      <div className="text-center mb-6 sm:mb-10 bg-gradient-to-r from-emerald-600 to-blue-600 text-white p-4 sm:p-6 lg:p-8 rounded-lg shadow-md relative">
+        <Link 
+          href="/" 
+          className="absolute left-3 sm:left-4 top-3 sm:top-4 bg-white/20 p-1.5 sm:p-2 rounded-full hover:bg-white/30 transition-colors text-white flex items-center gap-1 sm:gap-2"
+        >
+          <Home className="h-4 w-4 sm:h-5 sm:w-5" />
+          <span className="hidden sm:inline text-sm">홈으로</span>
+        </Link>
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3">관리자 대시보드</h1>
+        <p className="text-base sm:text-lg lg:text-xl opacity-90">블로그 통계 및 컨텐츠 관리</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <DashboardCard
           title="게시글"
           value={`${stats.articles}개`}
-          icon={<FileText className="h-6 w-6 text-white" />}
-          color="bg-blue-500"
+          icon={<FileText className="h-5 w-5 sm:h-6 sm:w-6" />}
+          color="text-blue-500"
         />
         <DashboardCard
           title="댓글"
           value={`${stats.comments}개`}
-          icon={<MessageSquare className="h-6 w-6 text-white" />}
-          color="bg-emerald-500"
+          icon={<MessageSquare className="h-5 w-5 sm:h-6 sm:w-6" />}
+          color="text-emerald-500"
         />
         <DashboardCard
           title="카테고리"
           value={`${stats.categories}개`}
-          icon={<Tag className="h-6 w-6 text-white" />}
-          color="bg-purple-500"
+          icon={<Tag className="h-5 w-5 sm:h-6 sm:w-6" />}
+          color="text-purple-500"
         />
         <DashboardCard
           title="사용자"
           value={`${stats.users}명`}
-          icon={<Users className="h-6 w-6 text-white" />}
-          color="bg-amber-500"
+          icon={<Users className="h-5 w-5 sm:h-6 sm:w-6" />}
+          color="text-amber-500"
         />
       </div>
 
       <Tabs defaultValue="recent" className="w-full">
-        <TabsList className="w-full justify-center mb-8 bg-white border p-1 rounded-lg shadow-sm">
-          <TabsTrigger value="recent" className="flex items-center gap-2 py-3 px-6">
-            <Bell className="h-5 w-5" />
+        <TabsList className="w-full flex justify-center mb-4 sm:mb-6 lg:mb-8 bg-white border p-1 rounded-lg shadow-sm overflow-x-auto no-scrollbar">
+          <TabsTrigger value="recent" className="flex items-center gap-1 sm:gap-2 py-2 px-3 sm:py-3 sm:px-6 text-sm sm:text-base whitespace-nowrap">
+            <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
             <span className="font-medium">최근 활동</span>
           </TabsTrigger>
-          <TabsTrigger value="content" className="flex items-center gap-2 py-3 px-6">
-            <PenTool className="h-5 w-5" />
+          <TabsTrigger value="content" className="flex items-center gap-1 sm:gap-2 py-2 px-3 sm:py-3 sm:px-6 text-sm sm:text-base whitespace-nowrap">
+            <PenTool className="h-4 w-4 sm:h-5 sm:w-5" />
             <span className="font-medium">콘텐츠 관리</span>
           </TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2 py-3 px-6">
-            <Settings className="h-5 w-5" />
+          <TabsTrigger value="settings" className="flex items-center gap-1 sm:gap-2 py-2 px-3 sm:py-3 sm:px-6 text-sm sm:text-base whitespace-nowrap">
+            <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
             <span className="font-medium">설정</span>
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="recent" className="mt-6">
-          <div className="grid gap-6 md:grid-cols-2">
+        <TabsContent value="recent" className="mt-4 sm:mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <RecentArticlesCard 
               title="최근 게시글" 
-              icon={<BookOpen className="h-5 w-5 text-blue-500" />} 
+              icon={<BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />} 
               path="/admin/articles"
               articles={recentArticles}
             />
             <RecentCommentsCard 
               title="최근 댓글" 
-              icon={<MessageSquare className="h-5 w-5 text-emerald-500" />} 
+              icon={<MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-500" />} 
               path="/admin/comments"
               comments={recentComments}
             />
           </div>
         </TabsContent>
 
-        <TabsContent value="content" className="mt-6">
-          <div className="grid gap-6 md:grid-cols-3">
+        <TabsContent value="content" className="mt-4 sm:mt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <ActionCard
               title="게시글 관리"
               description="게시글 목록, 작성, 수정, 삭제"
-              icon={<FileText className="h-10 w-10" />}
+              icon={<FileText className="h-8 w-8 sm:h-10 sm:w-10" />}
               path="/admin/articles"
-              color="bg-blue-50 text-blue-600"
+              color="text-blue-600"
             />
             <ActionCard
               title="카테고리 관리"
               description="카테고리 목록, 생성, 수정, 삭제"
-              icon={<Tag className="h-10 w-10" />}
+              icon={<Tag className="h-8 w-8 sm:h-10 sm:w-10" />}
               path="/admin/categories"
-              color="bg-purple-50 text-purple-600"
+              color="text-purple-600"
             />
             <ActionCard
               title="댓글 관리"
               description="댓글 목록, 승인, 삭제"
-              icon={<MessageSquare className="h-10 w-10" />}
+              icon={<MessageSquare className="h-8 w-8 sm:h-10 sm:w-10" />}
               path="/admin/comments"
-              color="bg-emerald-50 text-emerald-600"
+              color="text-emerald-600"
             />
           </div>
         </TabsContent>
 
-        <TabsContent value="settings" className="mt-6">
-          <div className="grid gap-6 md:grid-cols-3">
+        <TabsContent value="settings" className="mt-4 sm:mt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <ActionCard
               title="블로그 설정"
               description="블로그 이름, 설명, 댓글 설정 등"
-              icon={<Settings className="h-10 w-10" />}
+              icon={<Settings className="h-8 w-8 sm:h-10 sm:w-10" />}
               path="/admin/settings"
-              color="bg-amber-50 text-amber-600"
+              color="text-amber-600"
             />
             <ActionCard
               title="사용자 관리"
               description="사용자 목록, 권한 관리"
-              icon={<Shield className="h-10 w-10" />}
+              icon={<Shield className="h-8 w-8 sm:h-10 sm:w-10" />}
               path="/admin/users"
-              color="bg-indigo-50 text-indigo-600"
+              color="text-indigo-600"
             />
             <ActionCard
               title="통계"
               description="방문자 통계, 인기 게시글 등"
-              icon={<Sparkles className="h-10 w-10" />}
+              icon={<Sparkles className="h-8 w-8 sm:h-10 sm:w-10" />}
               path="/admin/statistics"
-              color="bg-pink-50 text-pink-600"
+              color="text-pink-600"
             />
           </div>
         </TabsContent>
@@ -283,48 +290,49 @@ export default function AdminPage() {
 
 function DashboardCard({ title, value, icon, color }: DashboardCardProps) {
   return (
-    <Card className="border-0 shadow-md overflow-hidden">
-      <div className={`${color} p-3 text-white`}>
-        <div className="flex justify-between items-center">
-          <h3 className="font-medium text-white">{title}</h3>
-          <div className="bg-white/20 rounded-full p-2">
+    <Card className="border shadow-sm hover:shadow-md transition-all">
+      <CardContent className="p-3 sm:p-4 lg:p-6">
+        <div className="flex justify-between items-center mb-2 sm:mb-3">
+          <h3 className="font-medium text-gray-600 text-sm sm:text-base">{title}</h3>
+          <div className={`${color} bg-gray-50 p-1.5 sm:p-2 rounded-full`}>
             {icon}
           </div>
         </div>
-        <p className="text-3xl font-bold mt-2">{value}</p>
-      </div>
+        <p className="text-xl sm:text-2xl lg:text-3xl font-bold">{value}</p>
+      </CardContent>
     </Card>
   );
 }
 
 function RecentArticlesCard({ title, icon, path, articles }: RecentArticlesCardProps) {
   return (
-    <Card className="border shadow-sm hover:shadow-md transition-shadow">
-      <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
-        <div className="flex items-center space-x-2">
-          {icon}
-          <CardTitle className="font-medium">{title}</CardTitle>
+    <Card className="border shadow-sm hover:shadow-md transition-all">
+      <CardContent className="p-3 sm:p-4 lg:p-6">
+        <div className="flex items-center justify-between mb-3 sm:mb-4 pb-2 sm:pb-3 border-b">
+          <div className="flex items-center space-x-2">
+            <div className="text-blue-500">{icon}</div>
+            <CardTitle className="font-medium text-sm sm:text-base">{title}</CardTitle>
+          </div>
+          <a href={path} className="text-xs sm:text-sm text-blue-500 hover:underline">
+            더 보기
+          </a>
         </div>
-        <a href={path} className="text-sm text-blue-500 hover:underline">
-          더 보기
-        </a>
-      </CardHeader>
-      <CardContent className="pt-4">
+        
         {articles.length > 0 ? (
-          <ul className="space-y-3">
+          <ul className="space-y-2 sm:space-y-3">
             {articles.map((article) => (
               <li key={article.id} className="flex justify-between items-center border-b pb-2 last:border-0">
-                <a href={`/admin/articles/${article.id}`} className="hover:text-blue-600 truncate font-medium">
+                <a href={`/admin/articles/${article.id}`} className="hover:text-blue-600 truncate font-medium text-xs sm:text-sm">
                   {article.title}
                 </a>
-                <span className="text-xs bg-gray-100 px-2 py-1 rounded-full text-gray-600">
+                <span className="text-xs bg-gray-100 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-gray-600 whitespace-nowrap ml-2">
                   {format(new Date(article.created_at), "yy.MM.dd")}
                 </span>
               </li>
             ))}
           </ul>
         ) : (
-          <div className="text-center p-6 text-gray-500">
+          <div className="text-center p-4 sm:p-6 text-gray-500 text-sm">
             <p>게시글이 없습니다.</p>
           </div>
         )}
@@ -335,27 +343,28 @@ function RecentArticlesCard({ title, icon, path, articles }: RecentArticlesCardP
 
 function RecentCommentsCard({ title, icon, path, comments }: RecentCommentsCardProps) {
   return (
-    <Card className="border shadow-sm hover:shadow-md transition-shadow">
-      <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
-        <div className="flex items-center space-x-2">
-          {icon}
-          <CardTitle className="font-medium">{title}</CardTitle>
+    <Card className="border shadow-sm hover:shadow-md transition-all">
+      <CardContent className="p-3 sm:p-4 lg:p-6">
+        <div className="flex items-center justify-between mb-3 sm:mb-4 pb-2 sm:pb-3 border-b">
+          <div className="flex items-center space-x-2">
+            <div className="text-emerald-500">{icon}</div>
+            <CardTitle className="font-medium text-sm sm:text-base">{title}</CardTitle>
+          </div>
+          <a href={path} className="text-xs sm:text-sm text-emerald-500 hover:underline">
+            더 보기
+          </a>
         </div>
-        <a href={path} className="text-sm text-emerald-500 hover:underline">
-          더 보기
-        </a>
-      </CardHeader>
-      <CardContent className="pt-4">
+        
         {comments.length > 0 ? (
-          <ul className="space-y-3">
+          <ul className="space-y-2 sm:space-y-3">
             {comments.map((comment) => (
               <li key={comment.id} className="flex flex-col border-b pb-2 last:border-0">
-                <div className="truncate font-medium">{comment.content}</div>
-                <div className="flex justify-between mt-1">
-                  <span className="text-xs bg-emerald-50 px-2 py-1 rounded-full text-emerald-600">
+                <div className="truncate font-medium text-xs sm:text-sm">{comment.content}</div>
+                <div className="flex flex-wrap gap-2 justify-between mt-1">
+                  <span className="text-xs bg-emerald-50 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-emerald-600 truncate max-w-[170px]">
                     {comment.articles?.title || "삭제된 게시글"}
                   </span>
-                  <span className="text-xs bg-gray-100 px-2 py-1 rounded-full text-gray-600">
+                  <span className="text-xs bg-gray-100 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-gray-600 whitespace-nowrap">
                     {format(new Date(comment.created_at), "yy.MM.dd")}
                   </span>
                 </div>
@@ -363,7 +372,7 @@ function RecentCommentsCard({ title, icon, path, comments }: RecentCommentsCardP
             ))}
           </ul>
         ) : (
-          <div className="text-center p-6 text-gray-500">
+          <div className="text-center p-4 sm:p-6 text-gray-500 text-sm">
             <p>댓글이 없습니다.</p>
           </div>
         )}
@@ -387,16 +396,14 @@ function ActionCard({ title, description, icon, path, color }: ActionCardProps) 
   return (
     <a href={path} onClick={handleCardClick}>
       <Card className="border shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-        <CardHeader className={`${color} rounded-t-lg`}>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">{title}</CardTitle>
-            <div className="bg-white/20 rounded-full p-2">
+        <CardContent className="p-3 sm:p-4 lg:p-6">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <CardTitle className="text-base sm:text-lg">{title}</CardTitle>
+            <div className={`${color} bg-gray-50 p-1.5 sm:p-2 rounded-full`}>
               {icon}
             </div>
           </div>
-        </CardHeader>
-        <CardContent className="pt-4">
-          <CardDescription className="text-sm text-gray-600">{description}</CardDescription>
+          <CardDescription className="text-xs sm:text-sm text-gray-600">{description}</CardDescription>
         </CardContent>
       </Card>
     </a>
