@@ -38,8 +38,8 @@ export function Hero() {
             서재, <span className="text-emerald-400">사람</span>을 잇다
           </h1>
           <p className="text-xl md:text-2xl text-white mb-8 mx-auto leading-relaxed font-medium drop-shadow-md px-4">
-            양질의 글과 다양한 관점으로 독자의 지식과 사고를 넓혀드립니다.<br />
-            삶의 지혜와 인사이트를 함께 나누는 공간입니다.
+            깊이 있는 생각, 연결되는 사람들<br />
+            당신의 이야기가 시작되는 곳.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 shadow-md">

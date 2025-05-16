@@ -3,7 +3,6 @@ import { Metadata } from 'next';
 import { getArticleById } from '@/features/magazine/api';
 import { notFound } from 'next/navigation';
 import { ArticleDetail } from '@/features/magazine/components/article-detail';
-import { use } from 'react';
 
 interface ArticlePageProps {
   params: Promise<{
@@ -30,8 +29,8 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
   try {
-    // params를 unwrap
-    const resolvedParams = use(params);
+    // async 함수에서는 use() 대신 await 사용
+    const resolvedParams = await params;
     
     // 서버에서 초기 데이터 가져오기
     const initialData = await getArticleById(resolvedParams.id);

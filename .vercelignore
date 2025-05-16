@@ -1,0 +1,5 @@
+# .vercelignore
+
+# ESLint 구성 파일은 무시하지 않도록 설정
+!.eslintrc.js
+!.eslintrc.json 

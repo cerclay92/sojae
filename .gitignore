@@ -43,4 +43,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# ESLint 캐시 파일
+.eslintcache
+
+# Vercel 디렉토리
 .vercel
+
+# 빌드 중간 파일
+.swc/
+tsconfig.tsbuildinfo
